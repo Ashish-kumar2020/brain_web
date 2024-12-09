@@ -1,0 +1,14 @@
+{
+  "name": "brain_web",
+  "version": "1.0.0",
+  "description": "Brain_Web is a dynamic course-selling platform designed for users to discover and purchase courses while empowering course creators to sell their educational content. Built with a focus on usability and scalability, the platform provides a seamless experience for both learners and educators.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
