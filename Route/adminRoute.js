@@ -1,10 +1,10 @@
 const { Router } = require("express");
 const adminRouter = Router();
-const { adminModel } = require("../db");
+const { adminModel } = require("../DbSchema");
 
 adminRouter.post("/signup", (req, res) => {
   res.status(201).json({
-    message: "Admin added successfully",
+    message: "Admin Added Successfully",
   });
 });
 

@@ -1,15 +1,13 @@
 const { Router } = require("express");
-const express = require("express");
 const userRouter = Router();
-const { userModel } = require("../db");
-// User Sign up Route
+
 userRouter.post("/signup", (req, res) => {
   res.status(201).json({
-    message: "User added successfully",
+    message: "User Added Successfully",
   });
 });
 
-// User Sign in Route
+// User Signup ROuter
 userRouter.post("/signin", (req, res) => {
   res.status(201).json({
     message: "User Signed in Successfully",
@@ -17,9 +15,9 @@ userRouter.post("/signin", (req, res) => {
 });
 
 // See all the courses
-userRouter.get("/purchases", (req, res) => {
+userRouter.get("/purchase", (req, res) => {
   res.status(201).json({
-    message: "Courses Fetched Successfully",
+    message: "Course fetched Successfully",
   });
 });
 

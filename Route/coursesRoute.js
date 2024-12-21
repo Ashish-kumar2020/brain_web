@@ -1,5 +1,4 @@
 const { Router } = require("express");
-const { courseModel } = require("../db");
 const courseRouter = Router();
 
 courseRouter.post("/purchase", (req, res) => {
@@ -10,7 +9,7 @@ courseRouter.post("/purchase", (req, res) => {
 
 courseRouter.get("/preview", (req, res) => {
   res.status(201).json({
-    message: "All Courses Fetched Successfully",
+    message: "All Courses fetched successfully",
   });
 });
 
