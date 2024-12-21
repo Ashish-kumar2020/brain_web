@@ -5,16 +5,45 @@ const { Types } = require("mongoose");
 
 adminRouter.post("/signup", async (req, res) => {
   const { email, password, firstName, lastName } = req.body;
-  const user = await adminModel.create({
-    email,
-    password,
-    firstName,
-    lastName,
-  });
-  if (user) {
-    res.status(201).json({
-      message: "Admin Added Successfully",
-      user: user,
+  try {
+    if (!email || !password || !firstName || !lastName) {
+      return res.status(400).json({
+        message: "All Fields are mandatory",
+      });
+    }
+
+    // check for existing user
+    const existingUser = await adminModel.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        message:
+          "Email Address Already exists, Please use different Email Address",
+      });
+    }
+    const user = await adminModel.create({
+      email,
+      password,
+      firstName,
+      lastName,
+    });
+    if (user) {
+      res.status(201).json({
+        message: "Admin Added Successfully",
+        user: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      });
+    }
+  } catch (error) {
+    console.error("Error during signin:", error);
+    if (error.name === "MongoServerError" && error.code === 11000) {
+      return res.status(409).json({
+        message: "Email already exists",
+      });
+    }
+    res.status(500).json({
+      message: "Internal server error",
     });
   }
 });

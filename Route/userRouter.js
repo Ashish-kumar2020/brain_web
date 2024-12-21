@@ -5,16 +5,49 @@ const userRouter = Router();
 
 userRouter.post("/signup", async (req, res) => {
   const { email, password, firstName, lastName } = req.body;
-  const user = await userModel.create({
-    email,
-    password,
-    firstName,
-    lastName,
-  });
-  res.status(201).json({
-    message: "User Added Successfully",
-    user: user,
-  });
+  try {
+    if (!email || !password || !firstName || !lastName) {
+      return res.status(400).json({
+        message: "All Fields are mandatory",
+      });
+    }
+
+    // check for existing user
+    const existingUser = await userModel.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        message: "Email Already exists, Please use different Email Address",
+      });
+    }
+
+    // Create a new Usre
+    const user = await userModel.create({
+      email,
+      password,
+      firstName,
+      lastName,
+    });
+    // return the new signedup user
+    res.status(200).json({
+      message: "User Added Successfully",
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    });
+  } catch (error) {
+    console.error("Error during signin:", error);
+    if (error.name === "MongoServerError" && error.code === 11000) {
+      return res.status(409).json({
+        message: "Email already exists",
+      });
+    }
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
 });
 
 // User Signin Router
