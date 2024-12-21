@@ -52,18 +52,39 @@ userRouter.post("/signup", async (req, res) => {
 
 // User Signin Router
 userRouter.post("/signin", async (req, res) => {
-  const { email, password, userId } = req.body;
-  const objectID = new Types.ObjectId(userId);
-  const data = await userModel.findOne({ _id: objectID });
-  console.log(data.email);
-  if (!data) {
-    res.status(201).json({
-      message: "User not found please signup",
+  const { email, password } = req.body;
+  try {
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "All Fields are mandatory",
+      });
+    }
+    const existingUser = await userModel.findOne({ email });
+    // if email not found
+    if (!existingUser) {
+      return res.status(400).json({
+        message: "No User Found with these details",
+      });
+    }
+
+    if (existingUser.password !== password) {
+      return res.status(401).json({
+        message: "Invalid Credentails",
+      });
+    }
+
+    // if email id found
+    return res.status(200).json({
+      message: "User Signed in successfully",
+      userDetails: {
+        email: existingUser.email,
+        userID: existingUser._id,
+      },
     });
-  } else {
-    res.status(201).json({
-      message: "User Signed in Successfully",
-      data: data,
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal Server error",
     });
   }
 });

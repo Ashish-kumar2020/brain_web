@@ -50,16 +50,39 @@ adminRouter.post("/signup", async (req, res) => {
 
 adminRouter.post("/signin", async (req, res) => {
   const { email, password, userId } = req.body;
-  const objectID = new Types.ObjectId(userId);
-  const userFound = await adminModel.findOne({ _id: objectID });
-  if (userFound) {
-    res.status(201).json({
-      message: "Admin Logged in Successfully",
-      userFound: userFound,
+  try {
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "All fields are mandotary",
+      });
+    }
+
+    // check for existing user
+    const existingUser = await adminModel.findOne({ email });
+    if (!existingUser) {
+      return res.status(400).json({
+        message: "No user found with these deatils",
+      });
+    }
+    // password does not match
+    if (existingUser.password !== password) {
+      return res.status(401).json({
+        message: "Invalid Credentails",
+      });
+    }
+
+    // if all details are correct
+    return res.status(200).json({
+      message: "User Signed in successfully",
+      userDetails: {
+        email: existingUser.email,
+        userID: existingUser._id,
+      },
     });
-  } else {
-    res.status(201).json({
-      message: "No User Found, Please signup",
+  } catch (error) {
+    console.log("Error", error);
+    return res.status(500).json({
+      message: "Internal Server error",
     });
   }
 });
