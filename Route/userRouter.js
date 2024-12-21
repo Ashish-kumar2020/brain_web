@@ -1,8 +1,9 @@
 const { Router } = require("express");
 const { userModel } = require("../DbSchema");
 const { Types } = require("mongoose");
+const jwt = require("jsonwebtoken");
 const userRouter = Router();
-
+const authenticateJWT = require("../middleware/userJWTMiddleware");
 userRouter.post("/signup", async (req, res) => {
   const { email, password, firstName, lastName } = req.body;
   try {
@@ -73,12 +74,21 @@ userRouter.post("/signin", async (req, res) => {
       });
     }
 
+    const token = jwt.sign(
+      {
+        user: existingUser.email,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
     // if email id found
     return res.status(200).json({
       message: "User Signed in successfully",
       userDetails: {
         email: existingUser.email,
         userID: existingUser._id,
+        token: token,
       },
     });
   } catch (error) {
@@ -86,6 +96,19 @@ userRouter.post("/signin", async (req, res) => {
     return res.status(500).json({
       message: "Internal Server error",
     });
+  }
+});
+
+userRouter.get("/userDeatil", authenticateJWT, (req, res) => {
+  try {
+    return res.status(200).json({
+      message: "User found",
+      userDetails: {
+        user: req.user.user,
+      },
+    });
+  } catch (error) {
+    console.log(error);
   }
 });
 
