@@ -2,7 +2,7 @@ const { Router } = require("express");
 const adminRouter = Router();
 const { adminModel } = require("../DbSchema");
 const { Types } = require("mongoose");
-
+const bcrypt = require("bcrypt");
 adminRouter.post("/signup", async (req, res) => {
   const { email, password, firstName, lastName } = req.body;
   try {
@@ -20,11 +20,13 @@ adminRouter.post("/signup", async (req, res) => {
           "Email Address Already exists, Please use different Email Address",
       });
     }
+
+    const hashedPassword = await bcrypt.hash(password, 6);
     const user = await adminModel.create({
-      email,
-      password,
-      firstName,
-      lastName,
+      email: email,
+      password: hashedPassword,
+      firstName: firstName,
+      lastName: lastName,
     });
     if (user) {
       res.status(201).json({
@@ -63,9 +65,12 @@ adminRouter.post("/signin", async (req, res) => {
       return res.status(400).json({
         message: "No user found with these deatils",
       });
+      ß;
     }
     // password does not match
-    if (existingUser.password !== password) {
+    const passwordMatch = await bcrypt.compare(password, existingUser.password);
+    console.log(passwordMatch);
+    if (!passwordMatch) {
       return res.status(401).json({
         message: "Invalid Credentails",
       });
