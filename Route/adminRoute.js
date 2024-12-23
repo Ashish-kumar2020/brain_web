@@ -1,8 +1,11 @@
 const { Router } = require("express");
 const adminRouter = Router();
-const { adminModel } = require("../DbSchema");
-const { Types } = require("mongoose");
+const { adminModel, courseModel, creatorModel } = require("../DbSchema");
+const { Types, default: mongoose } = require("mongoose");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const authenticateJWT = require("../middleware/userJWTMiddleware");
+
 adminRouter.post("/signup", async (req, res) => {
   const { email, password, firstName, lastName } = req.body;
   try {
@@ -21,12 +24,14 @@ adminRouter.post("/signup", async (req, res) => {
       });
     }
 
+    const creatorID = new Types.ObjectId();
     const hashedPassword = await bcrypt.hash(password, 6);
     const user = await adminModel.create({
       email: email,
       password: hashedPassword,
       firstName: firstName,
       lastName: lastName,
+      creatorID: creatorID,
     });
     if (user) {
       res.status(201).json({
@@ -35,6 +40,7 @@ adminRouter.post("/signup", async (req, res) => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        creatorID: user.creatorID,
       });
     }
   } catch (error) {
@@ -76,12 +82,22 @@ adminRouter.post("/signin", async (req, res) => {
       });
     }
 
+    const token = jwt.sign(
+      {
+        user: existingUser.email,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
     // if all details are correct
     return res.status(200).json({
       message: "User Signed in successfully",
       userDetails: {
         email: existingUser.email,
         userID: existingUser._id,
+        token: token,
+        creatorID: existingUser.creatorID,
+        name: existingUser.firstName,
       },
     });
   } catch (error) {
@@ -92,10 +108,60 @@ adminRouter.post("/signin", async (req, res) => {
   }
 });
 
-adminRouter.post("/course", (req, res) => {
-  res.status(201).json({
-    message: "",
-  });
+adminRouter.post("/course", authenticateJWT, async (req, res) => {
+  const {
+    title,
+    description,
+    price,
+    imageURL,
+    creatorID,
+    creatorName,
+    creatorEmail,
+  } = req.body;
+
+  if (
+    !title ||
+    !description ||
+    !price ||
+    !imageURL ||
+    !creatorID ||
+    !creatorName ||
+    !creatorEmail
+  ) {
+    return res.status(400).json({
+      message: "All Fields are mandatory",
+    });
+  }
+
+  try {
+    let existingCreator = await creatorModel.findOne({ creatorID });
+    if (!existingCreator) {
+      existingCreator = new creatorModel({
+        creatorID,
+        creatorName,
+        creatorEmail,
+        courses: [],
+      });
+    }
+
+    const newCourse = {
+      title,
+      description,
+      price,
+      imageURL,
+    };
+    existingCreator.courses.push(newCourse);
+    await existingCreator.save();
+    res.status(201).json({
+      message: "Course added successfully",
+      course: newCourse,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "An error occurred while adding the course",
+      error: error.message,
+    });
+  }
 });
 
 adminRouter.put("/course", (req, res) => {
@@ -104,10 +170,32 @@ adminRouter.put("/course", (req, res) => {
   });
 });
 
-adminRouter.get("/course/bulk", (req, res) => {
-  res.status(201).json({
-    message: "",
-  });
+adminRouter.get("/creatorcourses", authenticateJWT, async (req, res) => {
+  const { creatorID } = req.body;
+  try {
+    if (!creatorID) {
+      return res.status(400).json({
+        message: "Creator ID cannnot be empty",
+      });
+    }
+
+    const allCreators = await creatorModel.find({ creatorID });
+    if (!allCreators || allCreators.length === 0) {
+      return res.status(404).json({
+        message: "No courses found",
+      });
+    }
+    console.log(allCreators);
+    res.status(200).json({
+      message: "Creator courses fetched successfully",
+      courses: allCreators,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "An error occurred while fetching the course",
+      error: error.message,
+    });
+  }
 });
 
 module.exports = {

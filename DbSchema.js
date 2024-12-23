@@ -14,6 +14,7 @@ const adminSchema = new Schema({
   password: String,
   firstName: String,
   lastName: String,
+  creatorID: ObjectId,
 });
 
 const courseSchema = new Schema({
@@ -21,7 +22,13 @@ const courseSchema = new Schema({
   description: String,
   price: Number,
   imageURL: String,
+});
+
+const creatorSchema = new Schema({
   creatorID: ObjectId,
+  creatorName: String,
+  creatorEmail: String,
+  courses: [courseSchema],
 });
 
 const purchaseSchema = new Schema({
@@ -33,10 +40,12 @@ const userModel = mongoose.model("user", userSchema);
 const adminModel = mongoose.model("admin", adminSchema);
 const courseModel = mongoose.model("course", courseSchema);
 const purchaseModel = mongoose.model("purchase", purchaseSchema);
+const creatorModel = mongoose.model("Creator", creatorSchema);
 
 module.exports = {
   userModel,
   adminModel,
   courseModel,
   purchaseModel,
+  creatorModel,
 };

@@ -4,6 +4,7 @@ const { Types } = require("mongoose");
 const jwt = require("jsonwebtoken");
 const userRouter = Router();
 const authenticateJWT = require("../middleware/userJWTMiddleware");
+
 userRouter.post("/signup", async (req, res) => {
   const { email, password, firstName, lastName } = req.body;
   try {
