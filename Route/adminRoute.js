@@ -164,12 +164,6 @@ adminRouter.post("/course", authenticateJWT, async (req, res) => {
   }
 });
 
-adminRouter.put("/course", (req, res) => {
-  res.status(201).json({
-    message: "",
-  });
-});
-
 adminRouter.get("/creatorcourses", authenticateJWT, async (req, res) => {
   const { creatorID } = req.body;
   try {
@@ -196,6 +190,54 @@ adminRouter.get("/creatorcourses", authenticateJWT, async (req, res) => {
       error: error.message,
     });
   }
+});
+
+adminRouter.put("/editcourse", authenticateJWT, async (req, res) => {
+  const { title, description, price, imageURL, creatorID } = req.body;
+
+  try {
+    const existingUser = await creatorModel.findOne({ creatorID });
+
+    if (!existingUser) {
+      return res.status(404).json({
+        message: "Creator not found",
+      });
+    }
+    const courseIndex = existingUser.courses.findIndex(
+      (course) => course.title == title
+    );
+
+    if (courseIndex === -1) {
+      return res.status(404).json({
+        message: "Course not found",
+      });
+    }
+
+    // updating the course
+    existingUser.courses[courseIndex] = {
+      ...existingUser.courses[courseIndex],
+      title,
+      description,
+      price,
+      imageURL,
+    };
+
+    await existingUser.save();
+
+    return res.status(200).json({
+      message: "Course updated successfully",
+      course: existingUser.courses[courseIndex],
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "An error occurred while updating the course",
+      error: error.message,
+    });
+  }
+
+  res.status(201).json({
+    message: "",
+  });
 });
 
 module.exports = {
