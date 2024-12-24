@@ -240,6 +240,37 @@ adminRouter.put("/editcourse", authenticateJWT, async (req, res) => {
   });
 });
 
+adminRouter.delete("/deletecourse", authenticateJWT, async (req, res) => {
+  const { creatorID, title } = req.body;
+  try {
+    const existingUser = await creatorModel.findOne({ creatorID });
+    if (!existingUser) {
+      return res.status(404).json({
+        message: "Creator not found",
+      });
+    }
+
+    const courseIndex = existingUser.courses.findIndex(
+      (course) => course.title == title
+    );
+    if (courseIndex === -1) {
+      return res.status(404).json({
+        message: "Course not found",
+      });
+    }
+    existingUser.courses.splice(courseIndex, 1);
+    await existingUser.save();
+    return res.status(200).json({
+      message: "Course deleted successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Error in deleting the course",
+    });
+  }
+});
+
 module.exports = {
   adminRouter: adminRouter,
 };
