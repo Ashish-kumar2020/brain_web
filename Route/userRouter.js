@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { userModel } = require("../DbSchema");
+const { userModel, creatorModel } = require("../DbSchema");
 const { Types } = require("mongoose");
 const jwt = require("jsonwebtoken");
 const userRouter = Router();
@@ -113,7 +113,30 @@ userRouter.get("/userDeatil", authenticateJWT, (req, res) => {
   }
 });
 
-// See all the courses
+// fetch all courses
+userRouter.get("/allcourses", authenticateJWT, async (req, res) => {
+  try {
+    const courses = await creatorModel.find({});
+    if (!courses) {
+      return res.status(400).json({
+        message: "No Courses available",
+      });
+    }
+
+    return res.status(200).json({
+      message: "All courses fetched",
+      courses: courses,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Error in fetching the courses",
+      error: error.message,
+    });
+  }
+});
+
+// See all user sepecific courses
 userRouter.get("/purchase", (req, res) => {
   res.status(201).json({
     message: "Course fetched Successfully",
