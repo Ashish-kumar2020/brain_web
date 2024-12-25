@@ -167,6 +167,33 @@ userRouter.get("/creatorname", authenticateJWT, async (req, res) => {
   }
 });
 
+// fetch specific creator course
+userRouter.get("/creatorcourses", authenticateJWT, async (req, res) => {
+  const { creatorID } = req.body;
+  try {
+    if (!creatorID) {
+      return res.status(400).json({
+        message: "Creator ID cannnot be empty",
+      });
+    }
+
+    const allCreators = await creatorModel.find({ creatorID });
+    if (!allCreators || allCreators.length === 0) {
+      return res.status(404).json({
+        message: "No courses found",
+      });
+    }
+    res.status(200).json({
+      message: "Creator courses fetched successfully",
+      courses: allCreators,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "An error occurred while fetching the course",
+      error: error.message,
+    });
+  }
+});
 // See all user sepecific courses
 userRouter.get("/purchase", (req, res) => {
   res.status(201).json({
