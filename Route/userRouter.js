@@ -196,6 +196,7 @@ userRouter.get("/creatorcourses", authenticateJWT, async (req, res) => {
 });
 // See all user sepecific courses
 userRouter.get("/purchase", (req, res) => {
+  // TODO : Add functionality to fetch all the users specific courses
   res.status(201).json({
     message: "Course fetched Successfully",
   });
